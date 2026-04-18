@@ -50,6 +50,7 @@ Consult `PLAN.md` for the full design spec and the list of feature branches with
    ```
 2. Do your work in that directory only. Never edit files in another agent's worktree.
 3. When done, open a PR from `feat/<feature>` → `main` using the `gh` CLI (see below).
+4. **Wait for a review.** Do not merge until a reviewer has approved. Check for review comments with `gh pr view <number> --comments` and address any issues raised before the PR is merged.
 
 ### GitHub operations
 

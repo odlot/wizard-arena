@@ -1,0 +1,12 @@
+{
+  "name": "wizard-arena",
+  "version": "1.0.0",
+  "description": "Multiplayer wizard arena — beamer + smartphone controllers",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8"
+  }
+}

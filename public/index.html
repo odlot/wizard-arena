@@ -3,10 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <title>Wizard Arena</title>
-  <style>body { margin: 0; background: #111; }</style>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #111; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    canvas { display: block; }
+  </style>
 </head>
 <body>
-  <canvas id="arena" width="800" height="600"></canvas>
+  <canvas id="arena"></canvas>
   <script src="game-client.js"></script>
 </body>
 </html>

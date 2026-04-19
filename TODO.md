@@ -18,7 +18,7 @@ For the MVP feature branches and their dependencies, see `PLAN.md`.
 
 ### MVP — must merge before launch
 
-- [ ] **`feat/phone-controller`** — implement `public/controller.html` + `public/controller.js` (D-pad + shoot button, WebSocket input, HP display). No open PR yet.
+- [ ] **`feat/phone-controller`** — D-pad + shoot button, WebSocket input, HP display. PR [#5](https://github.com/odlot/wizard-arena/pull/5) open, awaiting review.
 - [ ] **`feat/server-ws`** — add WebSocket server + game loop to `server.js`. Blocked until `feat/game-logic` and `feat/server-http` are both merged.
 - [ ] **Review `feat/beamer-view` (PR #4)** — no review posted yet.
 

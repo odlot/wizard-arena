@@ -2,7 +2,7 @@ const {
   ARENA_WIDTH, ARENA_HEIGHT, ARENA_MARGIN,
   MAX_PLAYERS, WIZARD_MAX_HP, WIZARD_SPEED, WIZARD_RADIUS,
   FIREBOLT_SPEED, FIREBOLT_DAMAGE, FIREBOLT_COOLDOWN, FIREBOLT_RADIUS,
-  COLORS, WIZARD_START_OFFSET, GAME_START_DELAY,
+  COLORS, WIZARD_START_OFFSET, VOTE_COUNTDOWN,
 } = require('./settings');
 
 class FireBolt {
@@ -93,7 +93,9 @@ class Game {
     this.wizards = [];
     this.bolts = [];
     this.status = 'waiting';
-    this.countdown = GAME_START_DELAY;
+    this.countdown = VOTE_COUNTDOWN;
+    this.votes = new Set();
+    this.connectedPlayers = new Set();
     for (let i = 0; i < MAX_PLAYERS; i++) {
       this.wizards.push(new Wizard(i, START_POSITIONS[i].x, START_POSITIONS[i].y));
     }
@@ -114,6 +116,8 @@ class Game {
     if (!wizard) return null;
     wizard.isAI = false;
     this._socketToWizard.set(socketId, wizard.id);
+    this.connectedPlayers.add(wizard.id);
+    this.countdown = VOTE_COUNTDOWN;
     return wizard.id;
   }
 
@@ -123,7 +127,13 @@ class Game {
     const wizard = this.wizards[wizardId];
     if (wizard) wizard.isAI = true;
     this.inputs.delete(wizardId);
+    this.votes.delete(wizardId);
+    this.connectedPlayers.delete(wizardId);
     this._socketToWizard.delete(socketId);
+  }
+
+  vote(wizardId) {
+    if (this.status === 'waiting') this.votes.add(wizardId);
   }
 
   setInput(wizardId, input) {
@@ -132,8 +142,14 @@ class Game {
 
   update(dt) {
     if (this.status === 'waiting') {
-      this.countdown = Math.max(0, this.countdown - dt);
-      if (this.countdown === 0) this.status = 'playing';
+      const allVoted = this.connectedPlayers.size > 0 &&
+                       this.votes.size >= this.connectedPlayers.size;
+      if (allVoted) {
+        this.countdown = Math.max(0, this.countdown - dt);
+        if (this.countdown === 0) this.status = 'playing';
+      } else {
+        this.countdown = VOTE_COUNTDOWN;
+      }
       return;
     }
     if (this.status !== 'playing') return;
@@ -219,6 +235,9 @@ class Game {
       bolts: this.bolts.map(b => ({ x: b.x, y: b.y })),
       status: this.status,
       countdown: this.countdown,
+      votedCount: this.votes.size,
+      connectedCount: this.connectedPlayers.size,
+      votedIds: [...this.votes],
     };
   }
 }

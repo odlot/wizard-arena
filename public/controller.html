@@ -115,6 +115,48 @@
     body.dead #dead-msg { display: block; }
     body.dead #hp-fill { background: #555; }
 
+    /* Waiting / vote state */
+    #ready-wrap {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 16px;
+    }
+
+    body.waiting #controls  { display: none; }
+    body.waiting #dead-msg  { display: none; }
+    body.waiting #ready-wrap { display: flex; }
+
+    #btn-ready {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      background: #14532d;
+      border: 3px solid #22c55e;
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #bbf7d0;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transition: background 0.1s, border-color 0.1s;
+    }
+
+    #btn-ready:active, #btn-ready.voted {
+      background: #166534;
+      border-color: #86efac;
+      color: #fff;
+    }
+
+    #btn-ready.voted { pointer-events: none; }
+
+    #ready-hint {
+      font-size: 0.9rem;
+      color: #666;
+      text-align: center;
+    }
+
     /* Landscape layout */
     body.landscape {
       flex-direction: row;
@@ -171,6 +213,11 @@
     </div>
 
     <button class="btn" id="btn-shoot">FIRE</button>
+  </div>
+
+  <div id="ready-wrap">
+    <button id="btn-ready">READY</button>
+    <div id="ready-hint">Tap to vote start</div>
   </div>
 
   <div id="dead-msg">YOU DIED</div>

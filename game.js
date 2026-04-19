@@ -2,7 +2,7 @@ const {
   ARENA_WIDTH, ARENA_HEIGHT, ARENA_MARGIN,
   MAX_PLAYERS, WIZARD_MAX_HP, WIZARD_SPEED, WIZARD_RADIUS,
   FIREBOLT_SPEED, FIREBOLT_DAMAGE, FIREBOLT_COOLDOWN, FIREBOLT_RADIUS,
-  COLORS,
+  COLORS, WIZARD_START_OFFSET,
 } = require('./settings');
 
 class FireBolt {
@@ -41,7 +41,7 @@ class Wizard {
   }
 
   update(dt) {
-    if (this.cooldown > 0) this.cooldown -= dt;
+    this.cooldown = Math.max(0, this.cooldown - dt);
   }
 
   move(dx, dy, dt) {
@@ -84,10 +84,10 @@ class Game {
     this._socketToWizard = new Map();
 
     const startPositions = [
-      { x: ARENA_MARGIN + 60, y: ARENA_MARGIN + 60 },
-      { x: ARENA_WIDTH - ARENA_MARGIN - 60, y: ARENA_HEIGHT - ARENA_MARGIN - 60 },
-      { x: ARENA_WIDTH - ARENA_MARGIN - 60, y: ARENA_MARGIN + 60 },
-      { x: ARENA_MARGIN + 60, y: ARENA_HEIGHT - ARENA_MARGIN - 60 },
+      { x: ARENA_MARGIN + WIZARD_START_OFFSET, y: ARENA_MARGIN + WIZARD_START_OFFSET },
+      { x: ARENA_WIDTH - ARENA_MARGIN - WIZARD_START_OFFSET, y: ARENA_HEIGHT - ARENA_MARGIN - WIZARD_START_OFFSET },
+      { x: ARENA_WIDTH - ARENA_MARGIN - WIZARD_START_OFFSET, y: ARENA_MARGIN + WIZARD_START_OFFSET },
+      { x: ARENA_MARGIN + WIZARD_START_OFFSET, y: ARENA_HEIGHT - ARENA_MARGIN - WIZARD_START_OFFSET },
     ];
 
     for (let i = 0; i < MAX_PLAYERS; i++) {

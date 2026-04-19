@@ -47,6 +47,8 @@ module.exports = {
   WIZARD_MAX_HP: 5, WIZARD_SPEED: 150, WIZARD_RADIUS: 18,
   FIREBOLT_SPEED: 300, FIREBOLT_DAMAGE: 1, FIREBOLT_COOLDOWN: 0.5, FIREBOLT_RADIUS: 6,
   COLORS: ['#4488ff', '#ff4444', '#44cc44', '#ffaa00'],
+  GAME_START_DELAY: 10,   // seconds of countdown before each round starts
+  GAME_RESTART_DELAY: 5,  // seconds to show win/draw screen before auto-reset
 };
 ```
 
@@ -67,13 +69,15 @@ module.exports = {
 ### `Game`
 - `wizards` — array of 4 Wizards, all start as AI
 - `bolts` — array of active FireBolts
-- `status` — `"playing"` | `"win"` | `"over"`
+- `status` — `"waiting"` | `"playing"` | `"win"` | `"over"`
+- `countdown` — seconds remaining before `"waiting"` transitions to `"playing"`
 - `inputs` — `Map<wizardId, {dx, dy, shoot}>` — latest input per player-controlled wizard
 - `addPlayer(socketId)` → `wizardId | null` — assigns first free slot, marks `isAI = false`
 - `removePlayer(socketId)` — reverts wizard to AI
 - `setInput(wizardId, input)` — stores input for next tick
 - `update(dt)` — full tick (see game loop below)
-- `getState()` → serialisable snapshot for broadcast
+- `reset()` — reinitialises wizards/bolts/inputs, sets `status = "waiting"`, restores player slots from `_socketToWizard`
+- `getState()` → serialisable snapshot for broadcast (includes `countdown`)
 
 ## Server (`server.js`)
 
@@ -83,15 +87,17 @@ module.exports = {
 - On WebSocket `message`: calls `game.setInput(wizardId, input)`
 - On WebSocket `close`: calls `game.removePlayer(socket.id)`
 - Game loop: `setInterval` at `1000/FPS` ms; calls `game.update(dt)`; broadcasts `{type:"state", ...game.getState()}` to all clients
+- Auto-reset: after each tick, if `status` just became `"win"` or `"over"`, schedule `game.reset()` via `setTimeout(GAME_RESTART_DELAY * 1000)` (tracked with a `resetScheduled` flag to avoid double-scheduling)
 
 ## WebSocket Protocol
 
 ### Server → all clients (every tick)
 ```json
-{ "type": "state", "wizards": [...], "bolts": [...], "status": "playing" }
+{ "type": "state", "wizards": [...], "bolts": [...], "status": "playing", "countdown": 0 }
 ```
 Wizard fields: `{ id, x, y, hp, alive, isAI, color }`  
-Bolt fields: `{ x, y }`
+Bolt fields: `{ x, y }`  
+`countdown` is `> 0` only when `status === "waiting"`; clients show it as "Starting in N…"
 
 ### Server → joining phone (once on connect)
 ```json
@@ -107,6 +113,13 @@ Bolt fields: `{ x, y }`
 ## Game Loop (`game.update(dt)`)
 
 ```
+If status === "waiting":
+  countdown -= dt
+  if countdown <= 0: status = "playing"
+  return
+
+If status !== "playing": return
+
 1. For each player-controlled wizard: apply stored input (move + maybe shoot)
 2. For each AI wizard: compute direction to nearest living wizard, move + shoot
 3. Update all bolt positions; deactivate out-of-bounds bolts
@@ -115,8 +128,8 @@ Bolt fields: `{ x, y }`
 5. Cull inactive bolts
 6. Check status:
      living = wizards.filter(w => w.alive)
-     if living.length === 1: status = "win" (last one standing shown on beamer)
-     if living.length === 0: status = "over" (draw)
+     if living.length === 1: status = "win"
+     if living.length === 0: status = "over"
 ```
 
 ## AI Behavior
@@ -132,6 +145,10 @@ Simple aggression (open arena, no pathfinding needed):
 - 1 shoot button — `touchstart`/`touchend`
 - On any button state change: send `{type:"input", dx, dy, shoot}` via WebSocket
 - Shows own wizard's HP; greys out if wizard is dead
+- On new `"waiting"` state after game-over: remove `dead` class, re-enable controls
+- **Orientation**: detected via `window.matchMedia('(orientation: landscape)')` and a `change` listener — no flip button needed. Toggles a `landscape` CSS class on `<body>`
+  - Portrait: info at top, D-pad + shoot button in a row below
+  - Landscape: slim info strip at top, D-pad far-left and shoot button far-right filling screen width
 
 ## Beamer View (`index.html` / `game-client.js`)
 
@@ -141,7 +158,10 @@ Rendering order (back to front):
 1. Arena floor (filled rect), then walls (4 border strips)
 2. Wizards — filled circle in player color + HP bar above + player-number label
 3. Fire bolts — small filled circle
-4. Win/over overlay text if `status !== "playing"`
+4. Overlay for non-playing states:
+   - `"waiting"`: "Starting in N…" countdown text (N = `Math.ceil(state.countdown)`)
+   - `"win"`: "WINNER!" text
+   - `"over"`: "DRAW" text
 
 ## Feature Branches
 

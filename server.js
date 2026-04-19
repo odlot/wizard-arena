@@ -10,9 +10,18 @@ const MIME = {
   '.ico':  'image/x-icon',
 };
 
+const PUBLIC_DIR = path.join(__dirname, 'public');
+
 const server = http.createServer((req, res) => {
   const url = req.url === '/' ? '/index.html' : req.url;
-  const filePath = path.join(__dirname, 'public', url);
+  const filePath = path.join(PUBLIC_DIR, url);
+
+  if (!filePath.startsWith(PUBLIC_DIR + path.sep)) {
+    res.writeHead(403, { 'Content-Type': 'text/plain' });
+    res.end('Forbidden');
+    return;
+  }
+
   const ext = path.extname(filePath);
   const mime = MIME[ext] || 'application/octet-stream';
 

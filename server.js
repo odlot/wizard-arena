@@ -43,6 +43,8 @@ const wss = new WebSocket.Server({ server });
 const game = new Game();
 let nextSocketId = 0;
 
+wss.on('error', (err) => console.error('WSS error', err));
+
 wss.on('connection', (socket) => {
   const socketId = nextSocketId++;
   const wizardId = game.addPlayer(socketId);
@@ -55,7 +57,7 @@ wss.on('connection', (socket) => {
     let msg;
     try { msg = JSON.parse(data.toString()); } catch { return; }
     if (msg.type === 'input' && wizardId !== null) {
-      game.setInput(wizardId, msg);
+      game.setInput(wizardId, { dx: msg.dx, dy: msg.dy, shoot: msg.shoot });
     }
   });
 

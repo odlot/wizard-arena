@@ -12,4 +12,5 @@ module.exports = {
   FIREBOLT_COOLDOWN: 0.5,
   FIREBOLT_RADIUS: 6,
   COLORS: ['#4488ff', '#ff4444', '#44cc44', '#ffaa00'],
+  WIZARD_START_OFFSET: 60,
 };

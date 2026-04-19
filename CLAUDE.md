@@ -2,7 +2,7 @@
 
 ## Project overview
 
-Top-down 2D multiplayer wizard arena. Players join via smartphone browser; the game view is shown on a beamer. Up to 4 players; empty slots are filled by AI. See `README.md` for architecture and `PLAN.md` for full design spec.
+Top-down 2D multiplayer wizard arena. Players join via smartphone browser; the game view is shown on a beamer. Up to 4 players; empty slots are filled by AI. See `README.md` for architecture, `PLAN.md` for the full design spec, and `TODO.md` for the live backlog of pending and future work.
 
 ## Tech stack
 
@@ -40,7 +40,7 @@ Development is split across multiple agents. Each agent works in its own **git w
 
 ### Starting work as an agent
 
-Consult `PLAN.md` for the full design spec and the list of feature branches with their scope, dependencies, and verification steps. You will be told which feature to work on.
+Consult `PLAN.md` for the full design spec and `TODO.md` for the current backlog. Check `gh pr list` before starting any task to confirm no other agent has claimed it.
 
 1. Create a worktree for your feature branch from `main`:
    ```bash

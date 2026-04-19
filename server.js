@@ -15,8 +15,10 @@ const MIME = {
 
 const PUBLIC_DIR = path.join(__dirname, 'public');
 
+const URL_MAP = { '/': '/index.html', '/controller': '/controller.html' };
+
 const server = http.createServer((req, res) => {
-  const url = req.url === '/' ? '/index.html' : req.url;
+  const url = URL_MAP[req.url] || req.url;
   const filePath = path.join(PUBLIC_DIR, url);
 
   if (!filePath.startsWith(PUBLIC_DIR + path.sep)) {
@@ -69,8 +71,10 @@ wss.on('connection', (socket) => {
 let lastTime = Date.now();
 setInterval(() => {
   const now = Date.now();
-  game.update((now - lastTime) / 1000);
+  const dt = (now - lastTime) / 1000;
   lastTime = now;
+
+  if (wss.clients.size > 0) game.update(dt);
 
   const state = JSON.stringify({ type: 'state', ...game.getState() });
   for (const client of wss.clients) {

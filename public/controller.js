@@ -20,9 +20,15 @@ ws.onmessage = (event) => {
     label.textContent = `P${wizardId + 1}`;
   }
 
-  if (msg.type === 'state' && wizardId !== null) {
+  if (msg.type === 'state') {
+    if (wizardId === null) {
+      label.textContent = 'Spectating';
+      return;
+    }
     const w = msg.wizards[wizardId];
     if (!w) return;
+    label.style.color = w.color;
+    hpFill.style.background = w.color;
     hpFill.style.width = `${(w.hp / WIZARD_MAX_HP) * 100}%`;
     if (!w.alive) document.body.classList.add('dead');
   }

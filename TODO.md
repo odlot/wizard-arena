@@ -10,7 +10,6 @@ For the MVP feature branches and their dependencies, see `PLAN.md`.
 
 | Branch / Task | PR | Status |
 |---|---|---|
-| `feat/game-logic` — `game.js` | [#2](https://github.com/odlot/wizard-arena/pull/2) | Review comments addressed, awaiting approval |
 | `feat/server-http` — `server.js` HTTP serving | [#3](https://github.com/odlot/wizard-arena/pull/3) | Changes requested (path traversal fix needed) |
 | `feat/beamer-view` — `index.html` + `game-client.js` | [#4](https://github.com/odlot/wizard-arena/pull/4) | Open, not yet reviewed |
 
@@ -39,3 +38,4 @@ For the MVP feature branches and their dependencies, see `PLAN.md`.
 ## Done
 
 - [x] **`feat/foundation`** — `settings.js`, `package.json`, `.gitignore`, `package-lock.json` (merged)
+- [x] **`feat/game-logic`** — `game.js`: Game, Wizard, FireBolt, AI logic (merged via PR #2)

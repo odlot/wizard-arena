@@ -13,4 +13,6 @@ module.exports = {
   FIREBOLT_RADIUS: 6,
   COLORS: ['#4488ff', '#ff4444', '#44cc44', '#ffaa00'],
   WIZARD_START_OFFSET: 60,
+  GAME_START_DELAY: 10,
+  GAME_RESTART_DELAY: 5,
 };

@@ -2,7 +2,7 @@ const {
   ARENA_WIDTH, ARENA_HEIGHT, ARENA_MARGIN,
   MAX_PLAYERS, WIZARD_MAX_HP, WIZARD_SPEED, WIZARD_RADIUS,
   FIREBOLT_SPEED, FIREBOLT_DAMAGE, FIREBOLT_COOLDOWN, FIREBOLT_RADIUS,
-  COLORS, WIZARD_START_OFFSET,
+  COLORS, WIZARD_START_OFFSET, GAME_START_DELAY,
 } = require('./settings');
 
 class FireBolt {
@@ -75,23 +75,37 @@ class Wizard {
   }
 }
 
+const START_POSITIONS = [
+  { x: ARENA_MARGIN + WIZARD_START_OFFSET, y: ARENA_MARGIN + WIZARD_START_OFFSET },
+  { x: ARENA_WIDTH - ARENA_MARGIN - WIZARD_START_OFFSET, y: ARENA_HEIGHT - ARENA_MARGIN - WIZARD_START_OFFSET },
+  { x: ARENA_WIDTH - ARENA_MARGIN - WIZARD_START_OFFSET, y: ARENA_MARGIN + WIZARD_START_OFFSET },
+  { x: ARENA_MARGIN + WIZARD_START_OFFSET, y: ARENA_HEIGHT - ARENA_MARGIN - WIZARD_START_OFFSET },
+];
+
 class Game {
   constructor() {
+    this._socketToWizard = new Map();
+    this.inputs = new Map();
+    this._init();
+  }
+
+  _init() {
     this.wizards = [];
     this.bolts = [];
-    this.status = 'playing';
-    this.inputs = new Map();
-    this._socketToWizard = new Map();
-
-    const startPositions = [
-      { x: ARENA_MARGIN + WIZARD_START_OFFSET, y: ARENA_MARGIN + WIZARD_START_OFFSET },
-      { x: ARENA_WIDTH - ARENA_MARGIN - WIZARD_START_OFFSET, y: ARENA_HEIGHT - ARENA_MARGIN - WIZARD_START_OFFSET },
-      { x: ARENA_WIDTH - ARENA_MARGIN - WIZARD_START_OFFSET, y: ARENA_MARGIN + WIZARD_START_OFFSET },
-      { x: ARENA_MARGIN + WIZARD_START_OFFSET, y: ARENA_HEIGHT - ARENA_MARGIN - WIZARD_START_OFFSET },
-    ];
-
+    this.status = 'waiting';
+    this.countdown = GAME_START_DELAY;
     for (let i = 0; i < MAX_PLAYERS; i++) {
-      this.wizards.push(new Wizard(i, startPositions[i].x, startPositions[i].y));
+      this.wizards.push(new Wizard(i, START_POSITIONS[i].x, START_POSITIONS[i].y));
+    }
+  }
+
+  reset() {
+    const sockets = new Map(this._socketToWizard);
+    this._socketToWizard.clear();
+    this.inputs.clear();
+    this._init();
+    for (const [socketId] of sockets) {
+      this.addPlayer(socketId);
     }
   }
 
@@ -117,6 +131,11 @@ class Game {
   }
 
   update(dt) {
+    if (this.status === 'waiting') {
+      this.countdown = Math.max(0, this.countdown - dt);
+      if (this.countdown <= 0) this.status = 'playing';
+      return;
+    }
     if (this.status !== 'playing') return;
 
     for (const wizard of this.wizards) {
@@ -199,6 +218,7 @@ class Game {
       })),
       bolts: this.bolts.map(b => ({ x: b.x, y: b.y })),
       status: this.status,
+      countdown: this.countdown,
     };
   }
 }

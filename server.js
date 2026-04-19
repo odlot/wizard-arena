@@ -61,6 +61,9 @@ wss.on('connection', (socket) => {
     if (msg.type === 'input' && wizardId !== null) {
       game.setInput(wizardId, { dx: msg.dx, dy: msg.dy, shoot: msg.shoot });
     }
+    if (msg.type === 'vote' && wizardId !== null) {
+      game.vote(wizardId);
+    }
   });
 
   socket.on('close', () => {

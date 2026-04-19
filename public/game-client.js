@@ -66,18 +66,27 @@ function drawBolt(b) {
   ctx.fill();
 }
 
-function drawOverlay(status, countdown) {
+function drawOverlay(state) {
   ctx.fillStyle = 'rgba(0,0,0,0.6)';
   ctx.fillRect(0, 0, ARENA_WIDTH, ARENA_HEIGHT);
   ctx.fillStyle = '#fff';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  if (status === 'waiting') {
-    ctx.font = 'bold 48px monospace';
-    ctx.fillText(`Starting in ${Math.ceil(countdown)}…`, ARENA_WIDTH / 2, ARENA_HEIGHT / 2);
+  if (state.status === 'waiting') {
+    const allVoted = state.connectedCount > 0 && state.votedCount >= state.connectedCount;
+    if (allVoted) {
+      ctx.font = 'bold 48px monospace';
+      ctx.fillText(`Starting in ${Math.ceil(state.countdown)}…`, ARENA_WIDTH / 2, ARENA_HEIGHT / 2);
+    } else if (state.connectedCount === 0) {
+      ctx.font = 'bold 36px monospace';
+      ctx.fillText('Waiting for players…', ARENA_WIDTH / 2, ARENA_HEIGHT / 2);
+    } else {
+      ctx.font = 'bold 36px monospace';
+      ctx.fillText(`${state.votedCount} / ${state.connectedCount} players ready`, ARENA_WIDTH / 2, ARENA_HEIGHT / 2);
+    }
   } else {
     ctx.font = 'bold 64px monospace';
-    ctx.fillText(status === 'win' ? 'WINNER!' : 'DRAW', ARENA_WIDTH / 2, ARENA_HEIGHT / 2);
+    ctx.fillText(state.status === 'win' ? 'WINNER!' : 'DRAW', ARENA_WIDTH / 2, ARENA_HEIGHT / 2);
   }
 }
 
@@ -100,7 +109,7 @@ function render() {
   state.wizards.forEach(drawWizard);
   state.bolts.forEach(drawBolt);
 
-  if (state.status !== 'playing') drawOverlay(state.status, state.countdown);
+  if (state.status !== 'playing') drawOverlay(state);
 
   requestAnimationFrame(render);
 }

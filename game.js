@@ -133,7 +133,7 @@ class Game {
   update(dt) {
     if (this.status === 'waiting') {
       this.countdown = Math.max(0, this.countdown - dt);
-      if (this.countdown === 0) this.status = 'playing';
+      if (this.countdown <= 0) this.status = 'playing';
       return;
     }
     if (this.status !== 'playing') return;

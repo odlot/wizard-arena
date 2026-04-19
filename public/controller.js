@@ -25,6 +25,7 @@ ws.onmessage = (event) => {
       label.textContent = 'Spectating';
       return;
     }
+    if (msg.status === 'waiting') document.body.classList.remove('dead');
     const w = msg.wizards[wizardId];
     if (!w) return;
     label.style.color = w.color;
@@ -33,6 +34,13 @@ ws.onmessage = (event) => {
     if (!w.alive) document.body.classList.add('dead');
   }
 };
+
+const mql = window.matchMedia('(orientation: landscape)');
+function applyOrientation() {
+  document.body.classList.toggle('landscape', mql.matches);
+}
+mql.addEventListener('change', applyOrientation);
+applyOrientation();
 
 function sendInput() {
   if (ws.readyState !== WebSocket.OPEN) return;

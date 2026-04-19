@@ -114,6 +114,39 @@
 
     body.dead #dead-msg { display: block; }
     body.dead #hp-fill { background: #555; }
+
+    /* Landscape layout */
+    body.landscape {
+      flex-direction: row;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 24px;
+    }
+
+    body.landscape #info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-width: 80px;
+    }
+
+    body.landscape #label { font-size: 1.1rem; margin-bottom: 6px; }
+    body.landscape #hp-track { width: 70px; }
+
+    body.landscape #controls {
+      flex: 1;
+      max-width: none;
+      justify-content: space-around;
+      align-items: center;
+    }
+
+    body.landscape #dead-msg {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
   </style>
 </head>
 <body>

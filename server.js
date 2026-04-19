@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const WebSocket = require('ws');
 const { Game } = require('./game');
-const { FPS } = require('./settings');
+const { FPS, GAME_RESTART_DELAY } = require('./settings');
 
 const MIME = {
   '.html': 'text/html',
@@ -69,12 +69,19 @@ wss.on('connection', (socket) => {
 });
 
 let lastTime = Date.now();
+let resetScheduled = false;
+
 setInterval(() => {
   const now = Date.now();
   const dt = (now - lastTime) / 1000;
   lastTime = now;
 
-  if (wss.clients.size > 0) game.update(dt);
+  game.update(dt);
+
+  if ((game.status === 'win' || game.status === 'over') && !resetScheduled) {
+    resetScheduled = true;
+    setTimeout(() => { game.reset(); resetScheduled = false; }, GAME_RESTART_DELAY * 1000);
+  }
 
   const state = JSON.stringify({ type: 'state', ...game.getState() });
   for (const client of wss.clients) {

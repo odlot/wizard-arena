@@ -66,14 +66,19 @@ function drawBolt(b) {
   ctx.fill();
 }
 
-function drawOverlay(status) {
+function drawOverlay(status, countdown) {
   ctx.fillStyle = 'rgba(0,0,0,0.6)';
   ctx.fillRect(0, 0, ARENA_WIDTH, ARENA_HEIGHT);
   ctx.fillStyle = '#fff';
-  ctx.font = 'bold 64px monospace';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText(status === 'win' ? 'WINNER!' : 'DRAW', ARENA_WIDTH / 2, ARENA_HEIGHT / 2);
+  if (status === 'waiting') {
+    ctx.font = 'bold 48px monospace';
+    ctx.fillText(`Starting in ${Math.ceil(countdown)}…`, ARENA_WIDTH / 2, ARENA_HEIGHT / 2);
+  } else {
+    ctx.font = 'bold 64px monospace';
+    ctx.fillText(status === 'win' ? 'WINNER!' : 'DRAW', ARENA_WIDTH / 2, ARENA_HEIGHT / 2);
+  }
 }
 
 function render() {
@@ -95,7 +100,7 @@ function render() {
   state.wizards.forEach(drawWizard);
   state.bolts.forEach(drawBolt);
 
-  if (state.status !== 'playing') drawOverlay(state.status);
+  if (state.status !== 'playing') drawOverlay(state.status, state.countdown);
 
   requestAnimationFrame(render);
 }

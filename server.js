@@ -1,6 +1,9 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const WebSocket = require('ws');
+const { Game } = require('./game');
+const { FPS } = require('./settings');
 
 const MIME = {
   '.html': 'text/html',
@@ -35,6 +38,45 @@ const server = http.createServer((req, res) => {
     res.end(data);
   });
 });
+
+const wss = new WebSocket.Server({ server });
+const game = new Game();
+let nextSocketId = 0;
+
+wss.on('error', (err) => console.error('WSS error', err));
+
+wss.on('connection', (socket) => {
+  const socketId = nextSocketId++;
+  const wizardId = game.addPlayer(socketId);
+
+  if (wizardId !== null) {
+    socket.send(JSON.stringify({ type: 'joined', wizardId }));
+  }
+
+  socket.on('message', (data) => {
+    let msg;
+    try { msg = JSON.parse(data.toString()); } catch { return; }
+    if (msg.type === 'input' && wizardId !== null) {
+      game.setInput(wizardId, { dx: msg.dx, dy: msg.dy, shoot: msg.shoot });
+    }
+  });
+
+  socket.on('close', () => {
+    game.removePlayer(socketId);
+  });
+});
+
+let lastTime = Date.now();
+setInterval(() => {
+  const now = Date.now();
+  game.update((now - lastTime) / 1000);
+  lastTime = now;
+
+  const state = JSON.stringify({ type: 'state', ...game.getState() });
+  for (const client of wss.clients) {
+    if (client.readyState === WebSocket.OPEN) client.send(state);
+  }
+}, 1000 / FPS);
 
 const PORT = 3000;
 server.listen(PORT, () => {

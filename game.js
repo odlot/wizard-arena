@@ -146,7 +146,7 @@ class Game {
                        this.votes.size >= this.connectedPlayers.size;
       if (allVoted) {
         this.countdown = Math.max(0, this.countdown - dt);
-        if (this.countdown === 0) this.status = 'playing';
+        if (this.countdown <= 0) this.status = 'playing';
       } else {
         this.countdown = VOTE_COUNTDOWN;
       }

@@ -47,7 +47,7 @@ module.exports = {
   WIZARD_MAX_HP: 5, WIZARD_SPEED: 150, WIZARD_RADIUS: 18,
   FIREBOLT_SPEED: 300, FIREBOLT_DAMAGE: 1, FIREBOLT_COOLDOWN: 0.5, FIREBOLT_RADIUS: 6,
   COLORS: ['#4488ff', '#ff4444', '#44cc44', '#ffaa00'],
-  GAME_START_DELAY: 10,   // seconds of countdown before each round starts
+  VOTE_COUNTDOWN: 5,      // seconds of countdown once all players have voted
   GAME_RESTART_DELAY: 5,  // seconds to show win/draw screen before auto-reset
 };
 ```
@@ -70,14 +70,17 @@ module.exports = {
 - `wizards` — array of 4 Wizards, all start as AI
 - `bolts` — array of active FireBolts
 - `status` — `"waiting"` | `"playing"` | `"win"` | `"over"`
-- `countdown` — seconds remaining before `"waiting"` transitions to `"playing"`
+- `countdown` — seconds remaining on vote countdown (only ticks when all connected players have voted)
+- `votes` — Set of wizardIds that have voted to start
+- `connectedPlayers` — Set of wizardIds with an active phone connection
 - `inputs` — `Map<wizardId, {dx, dy, shoot}>` — latest input per player-controlled wizard
-- `addPlayer(socketId)` → `wizardId | null` — assigns first free slot, marks `isAI = false`
-- `removePlayer(socketId)` — reverts wizard to AI
+- `addPlayer(socketId)` → `wizardId | null` — assigns first free slot, marks `isAI = false`, resets countdown
+- `removePlayer(socketId)` — reverts wizard to AI, removes vote
+- `vote(wizardId)` — records a start vote during `"waiting"`
 - `setInput(wizardId, input)` — stores input for next tick
 - `update(dt)` — full tick (see game loop below)
-- `reset()` — reinitialises wizards/bolts/inputs, sets `status = "waiting"`, restores player slots from `_socketToWizard`
-- `getState()` → serialisable snapshot for broadcast (includes `countdown`)
+- `reset()` — reinitialises wizards/bolts/inputs/votes, sets `status = "waiting"`, restores player slots from `_socketToWizard`
+- `getState()` → serialisable snapshot for broadcast (includes `countdown`, `votedCount`, `connectedCount`, `votedIds`)
 
 ## Server (`server.js`)
 
@@ -93,11 +96,17 @@ module.exports = {
 
 ### Server → all clients (every tick)
 ```json
-{ "type": "state", "wizards": [...], "bolts": [...], "status": "playing", "countdown": 0 }
+{ "type": "state", "wizards": [...], "bolts": [...], "status": "playing",
+  "countdown": 0, "votedCount": 0, "connectedCount": 0, "votedIds": [] }
 ```
 Wizard fields: `{ id, x, y, hp, alive, isAI, color }`  
-Bolt fields: `{ x, y }`  
-`countdown` is `> 0` only when `status === "waiting"`; clients show it as "Starting in N…"
+Bolt fields: `{ x, y }`
+
+### Phone → server (vote to start)
+```json
+{ "type": "vote" }
+```
+Sent once when player taps READY. Only honoured during `"waiting"` status.
 
 ### Server → joining phone (once on connect)
 ```json
@@ -114,8 +123,11 @@ Bolt fields: `{ x, y }`
 
 ```
 If status === "waiting":
-  countdown -= dt
-  if countdown <= 0: status = "playing"
+  if connectedPlayers.size > 0 AND votes.size >= connectedPlayers.size:
+    countdown -= dt
+    if countdown <= 0: status = "playing"
+  else:
+    countdown = VOTE_COUNTDOWN  (reset while not all voted)
   return
 
 If status !== "playing": return
@@ -141,14 +153,16 @@ Simple aggression (open arena, no pathfinding needed):
 
 ## Phone Controller (`controller.html` / `controller.js`)
 
+- During `"waiting"`: shows a **READY** button (large circle). Tapping sends `{type:"vote"}`. Button turns green and shows "READY ✓" after voting. Hint text below shows "X/Y ready" or "Starting in N…"
+- During `"playing"`: shows D-pad + shoot button
 - 4 direction buttons (up / down / left / right) — `touchstart` sets flag, `touchend` clears it
 - 1 shoot button — `touchstart`/`touchend`
 - On any button state change: send `{type:"input", dx, dy, shoot}` via WebSocket
 - Shows own wizard's HP; greys out if wizard is dead
-- On new `"waiting"` state after game-over: remove `dead` class, re-enable controls
-- **Orientation**: detected via `window.matchMedia('(orientation: landscape)')` and a `change` listener — no flip button needed. Toggles a `landscape` CSS class on `<body>`
+- On new `"waiting"` state after game-over: remove `dead` class, show READY button again, clear voted state
+- **Orientation**: detected via `window.matchMedia('(orientation: landscape)')` — toggles `landscape` CSS class on `<body>`
   - Portrait: info at top, D-pad + shoot button in a row below
-  - Landscape: slim info strip at top, D-pad far-left and shoot button far-right filling screen width
+  - Landscape: slim info strip at top, D-pad far-left and shoot button far-right
 
 ## Beamer View (`index.html` / `game-client.js`)
 
@@ -159,7 +173,9 @@ Rendering order (back to front):
 2. Wizards — filled circle in player color + HP bar above + player-number label
 3. Fire bolts — small filled circle
 4. Overlay for non-playing states:
-   - `"waiting"`: "Starting in N…" countdown text (N = `Math.ceil(state.countdown)`)
+   - `"waiting"` + no players: "Waiting for players…"
+   - `"waiting"` + some voted: "X / Y players ready"
+   - `"waiting"` + all voted: "Starting in N…" (N = `Math.ceil(state.countdown)`)
    - `"win"`: "WINNER!" text
    - `"over"`: "DRAW" text
 

@@ -19,12 +19,8 @@ For the MVP feature branches and their dependencies, see `PLAN.md`.
 
 See `RESEARCH.md` for full root-cause analysis and fix design.
 
-- [ ] **`feat/lobby-and-restart`** — three changes in one branch (all touch the same files, cheapest to do together):
-  1. `settings.js`: add `GAME_START_DELAY` + `GAME_RESTART_DELAY`
-  2. `game.js`: add `"waiting"` status + `countdown`, update `update()` + `getState()`, add `reset()`
-  3. `server.js`: remove `wss.clients.size` guard, add auto-reset scheduling after game-over
-  4. `game-client.js`: render "Starting in N…" overlay during `"waiting"`
-  5. `controller.js` + `controller.html`: re-enable controls on new round; add `matchMedia` orientation detection + landscape CSS layout
+- [ ] **`feat/lobby-and-restart`** — waiting state, auto-reset, orientation layout. PR [#7](https://github.com/odlot/wizard-arena/pull/7) open, awaiting review.
+- [ ] **`feat/vote-to-start`** *(stacked on #7)* — vote-gated 5s countdown; READY button on controller; beamer shows "X/Y players ready". PR [#8](https://github.com/odlot/wizard-arena/pull/8) open, awaiting review. **Merge after #7.**
 
 ### Improvements — not required for next playtest
 

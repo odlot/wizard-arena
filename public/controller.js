@@ -5,8 +5,10 @@ const ws = new WebSocket(`ws://${location.host}`);
 let wizardId = null;
 const keys = { up: false, down: false, left: false, right: false, shoot: false };
 
-const label   = document.getElementById('label');
-const hpFill  = document.getElementById('hp-fill');
+const label     = document.getElementById('label');
+const hpFill    = document.getElementById('hp-fill');
+const btnReady  = document.getElementById('btn-ready');
+const readyHint = document.getElementById('ready-hint');
 
 ws.onopen  = () => { label.textContent = 'Waiting for slot…'; };
 ws.onclose = () => { label.textContent = 'Disconnected'; };
@@ -25,7 +27,21 @@ ws.onmessage = (event) => {
       label.textContent = 'Spectating';
       return;
     }
-    if (msg.status === 'waiting') document.body.classList.remove('dead');
+
+    document.body.classList.toggle('waiting', msg.status === 'waiting');
+
+    if (msg.status === 'waiting') {
+      const hasVoted = msg.votedIds.includes(wizardId);
+      btnReady.classList.toggle('voted', hasVoted);
+      btnReady.textContent = hasVoted ? 'READY ✓' : 'READY';
+      const allVoted = msg.connectedCount > 0 && msg.votedCount >= msg.connectedCount;
+      readyHint.textContent = allVoted
+        ? `Starting in ${Math.ceil(msg.countdown)}…`
+        : `${msg.votedCount} / ${msg.connectedCount} ready`;
+      document.body.classList.remove('dead');
+      return;
+    }
+
     const w = msg.wizards[wizardId];
     if (!w) return;
     label.style.color = w.color;
@@ -34,6 +50,14 @@ ws.onmessage = (event) => {
     if (!w.alive) document.body.classList.add('dead');
   }
 };
+
+btnReady.addEventListener('touchstart', (e) => {
+  e.preventDefault();
+  if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'vote' }));
+}, { passive: false });
+btnReady.addEventListener('click', () => {
+  if (ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ type: 'vote' }));
+});
 
 const mql = window.matchMedia('(orientation: landscape)');
 function applyOrientation() {

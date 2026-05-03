@@ -19,8 +19,6 @@ For the MVP feature branches and their dependencies, see `PLAN.md`.
 
 See `RESEARCH.md` for full root-cause analysis and fix design.
 
-- [ ] **`feat/lobby-and-restart`** — waiting state, auto-reset, orientation layout. PR [#7](https://github.com/odlot/wizard-arena/pull/7) open, awaiting review.
-- [ ] **`feat/vote-to-start`** *(stacked on #7)* — vote-gated 5s countdown; READY button on controller; beamer shows "X/Y players ready". PR [#8](https://github.com/odlot/wizard-arena/pull/8) open, awaiting review. **Merge after #7.**
 
 ### Improvements — not required for next playtest
 
@@ -41,3 +39,5 @@ See `RESEARCH.md` for full root-cause analysis and fix design.
 - [x] **`feat/beamer-view`** — `public/index.html` + `public/game-client.js`: canvas renderer, WebSocket state consumer (merged via PR #4)
 - [x] **`feat/server-ws`** — WebSocket server + game loop wired into `server.js` (merged via PR #6)
 - [x] **`feat/phone-controller`** — `public/controller.html` + `public/controller.js`: D-pad, shoot button, HP bar, spectator fallback (merged via PR #5)
+- [x] **`feat/lobby-and-restart`** — waiting state, auto-reset, orientation layout (merged via PR #7)
+- [x] **`feat/vote-to-start`** — vote-gated 5s countdown; READY button on controller; beamer shows "X/Y players ready" (merged via PR #8)
